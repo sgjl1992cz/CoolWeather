@@ -1,6 +1,7 @@
 package com.example.sgjl.coolweather;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -40,7 +41,7 @@ public class ChooseAreaFragment extends Fragment {
     public static final int LEVEL_CITY = 1;
     public static final int LEVEL_COUNTRY = 2;
 
-    public static final String SERVER_ADDRESS = "http://guolin.tech/api/china";
+    public static final String CountyAddress = Utility.SERVER + Utility.CHINA;
 
     private ProgressDialog progressDialog;
     private TextView titleText;
@@ -84,6 +85,22 @@ public class ChooseAreaFragment extends Fragment {
                 }else if(currentLevel == LEVEL_CITY){
                     selectedCity = cityList.get(position);
                     queryCounties();
+                }else if (currentLevel == LEVEL_COUNTRY){
+                    String weatherId = countyList.get(position).getWeatherId();
+                    if(getActivity() instanceof MainActivity){
+                        Intent intent = new Intent(getActivity(),WeatherActivity.class);
+                        intent.putExtra("weather_id",weatherId);
+                        intent.putExtra("city_name",selectedCity.getCityName());
+                        startActivity(intent);
+                        getActivity().finish();
+                    }else if(getActivity() instanceof WeatherActivity){
+                        WeatherActivity activity = (WeatherActivity)getActivity();
+                        activity.drawerLayout.closeDrawers();
+                        activity.swipeRefresh.setRefreshing(true);
+                        activity.requestWeather(weatherId,selectedCity.getCityName());
+                    }
+
+
                 }
             }
 
@@ -117,7 +134,7 @@ public class ChooseAreaFragment extends Fragment {
             listView.setSelection(0);
             currentLevel = LEVEL_PROVINCE;
         }else{
-            QueryFromServer(SERVER_ADDRESS,"province");
+            QueryFromServer(CountyAddress,"province");
         }
 
     }
@@ -140,7 +157,7 @@ public class ChooseAreaFragment extends Fragment {
             currentLevel = LEVEL_CITY;
         }else{
             int provinceCode = selectedProvince.getProvinceCode();
-            String address = SERVER_ADDRESS + "/" + provinceCode;
+            String address = CountyAddress + "/" + provinceCode;
             QueryFromServer(address,"city");
         }
     }
@@ -159,7 +176,7 @@ public class ChooseAreaFragment extends Fragment {
         }else{
             int provinceCode = selectedProvince.getProvinceCode();
             int cityCode = selectedCity.getCityCode();
-            String address = SERVER_ADDRESS + "/" + provinceCode + "/" + cityCode;
+            String address = CountyAddress + "/" + provinceCode + "/" + cityCode;
             QueryFromServer(address,"county");
         }
 
